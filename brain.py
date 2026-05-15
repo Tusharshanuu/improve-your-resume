@@ -1,80 +1,82 @@
-import os
 from openai import OpenAI
-from dotenv import load_dotenv
-from pydantic import BaseModel
-from typing import List
-# Purana 'class CareerAnalysis' hata do aur ye dalo:
-from schemas import CareerAnalysisResponse
 from config import settings
-
-# Ab tum direct 'settings.AI_MODEL' aur 'settings.OPENAI_API_KEY' use kar sakte ho
-
-# ... inside class ...
-
+from dotenv import load_dotenv
+from typing import List
 
 # Environment variables load karo
 load_dotenv()
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-# --- AI RESPONSE SCHEMA ---
-# Ye define karta hai ki GPT se humein exactly kya-kya chahiye
-# class CareerAnalysis(BaseModel):
-#     skill_gap: List[str]      # Kaunsi skills missing hain
-#     roadmap: List[str]        # Agle steps kya hone chahiye
-#     suggested_projects: List[str] # Practice ke liye projects
-#     confidence_score: float   # 0 to 1 ke beech mein ranking
-
 class CareerBrain:
     def __init__(self):
         self.model = settings.AI_MODEL
 
-    async def analyze_user_profile(self, name: str, skills: List[str], target_role: str):
+    async def analyze_user_profile(self, name: str, skills: str, target_role: str):
         """
         User ki skills aur target role ko analyze karke roadmap deta hai.
         """
         print(f"[Brain Log] Analyzing {name}'s profile for {target_role}...")
 
-        # Sateek Prompt Engineering
+        # --- SATEEK PROMPT ---
+        # brain.py mein prompt ko aise update karo
         # prompt = f"""
-        # You are a Senior Technical Career Coach. Analyze the following profile:
-        # Name: {name}
-        # Current Skills: {", ".join(skills)}
-        # Target Role: {target_role}
-
-        # Provide a structured career analysis including:
-        # 1. Skill Gaps (What they need to learn to reach the target role).
-        # 2. A step-by-step 4-week roadmap.
-        # 3. Two project ideas to build their portfolio.
-        # 4. A confidence score (0.0 to 1.0) based on their current skills vs target role.
-
-        # Return the response in a clean JSON format.
+        # You are a World-Class Career Consultant. Your expertise spans across Technical and Non-Technical industries (Marketing, Finance, Arts, Management, etc.).
+        
+        # ### YOUR TASK:
+        # Generate a professional 4-week roadmap specifically for the Target Role: '{target_role}'.
+        
+        # ### STRICT RULES:
+        # 1. **Domain Relevance**: If the role is '{target_role}', ONLY suggest skills and topics related to that field. 
+        #    - Example: If role is 'Digital Marketing', focus on SEO, SEM, and Content.
+        #    - Example: If role is 'HR Manager', focus on Recruitment, Payroll, and Labour Laws.
+        # 2. **NO TECH BIAS**: Do NOT mention Programming, AI, or Math UNLESS the '{target_role}' is a technical role.
+        # 3. **Skill Gap**: Compare the 'Current Skills' ({skills}) with the standard requirements of '{target_role}'. Identify what is missing for THIS SPECIFIC role.
+        # 4. **Day-wise Plan**: Provide a logical, 4-week learning path (Day 1 to 7 each week).
+        
+        # ### OUTPUT FORMAT (Valid JSON):
+        # - "weaknesses": String (Gaps specific to {target_role})
+        # - "roadmap": Dictionary (Week 1-4 with Day 1-7 breakdown)
+        # - "resources": List of 3-4 clickable URLs (YouTube, Courses, or Articles) relevant to {target_role}.
         # """
-        
+        # --- SATEEK PROMPT ---
         prompt = f"""
-        You are a Senior Technical Career Coach. Analyze this profile:
-        Name: {name}, Target Role: {target_role}, Current Skills: {", ".join(skills)}
+        You are a World-Class Career Consultant... (baaki purana text)
         
-        INSTRUCTIONS:
-        1. "skill_gap": List 3-4 specific technical topics.
-        2. "roadmap": This MUST be a list of 4 strings. Each string should contain 3-4 bullet points separated by a newline character (\\n). 
-           Example: "• Learn FastAPI Basics\\n• Understand Pydantic Schemas\\n• Build 2 CRUD APIs"
-        3. "suggested_projects": 2 Projects with NAME and a 2-line Execution Plan.
-        4. "confidence_score": Float (0.0 to 1.0).
-        
-        Return ONLY valid JSON.
+        ### OUTPUT FORMAT (Valid JSON):
+        - "top_skills": List of 3-4 most important keywords/tools for {target_role}  <-- YE LINE ADD KARNI HAI
+        - "weaknesses": String (Gaps specific to {target_role})
+        - "roadmap": Dictionary (Week 1-4 with Day 1-7 breakdown)
+        - "resources": List of 3-4 clickable URLs relevant to {target_role}.
         """
         try:
             response = client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "system", "content": "You are a career advisor that outputs only JSON."},
-                          {"role": "user", "content": prompt}],
-                response_format={"type": "json_object"} # Ensure JSON output
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": (
+                            "You are a Neutral Career Consultant. "
+                            "NEVER assume every user wants to learn AI. "
+                            "If the target role is non-technical (like HR, Sales, Chef, etc.), "
+                            "DO NOT mention Python, Machine Learning, or Math. "
+                            "Output ONLY valid JSON."
+                        )
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"}
             )
 
+            # ... baaki ka parsing code
             # GPT ka raw response
             raw_ai_data = response.choices[0].message.content
-            return raw_ai_data
+            import json
+            return json.loads(raw_ai_data) # String ko Dictionary mein badal kar bhej rahe hain
 
         except Exception as e:
             print(f"[Error] Brain execution fail ho gayi: {e}")
-            return None
+            return {
+                "weaknesses": "Analysis failed.",
+                "roadmap": "Could not generate roadmap.",
+                "resources": "No resources found."
+            }

@@ -3,12 +3,15 @@ from typing import List, Optional
 
 # --- REQUEST SCHEMAS ---
 # Jo data user API endpoint par bhejega
+# --- REQUEST SCHEMAS ---
 class UserProfile(BaseModel):
     name: str = Field(..., example="Tushar")
     skills: List[str] = Field(..., example=["Python", "FastAPI", "MongoDB"])
     experience_level: str = Field(..., example="Beginner")
-    target_role: Optional[str] = Field(default="AI Engineer", example="ML Engineer")
-
+    
+    # CHANGE HERE: 'target_role' ko 'role' kar do kyunki app.py 'role' bhej raha hai
+    # Aur default value hata do taaki galti pakdi jaye agar data na aaye
+    role: str = Field(..., example="Backend Developer")
 # --- RESPONSE SCHEMAS ---
 # AI Brain se jo structured data humein chahiye
 class CareerAnalysisResponse(BaseModel):

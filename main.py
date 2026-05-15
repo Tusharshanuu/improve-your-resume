@@ -30,18 +30,27 @@ def home():
 
 @app.post("/analyze-skills")
 async def analyze_skills(profile: UserProfile):
-    """
-    User ki skills leta hai, AI analysis karta hai aur DB mein save karta hai.
-    """
     try:
-        print(f"Analyzing profile for: {profile.name}")
+        print(f"DEBUG: Data Received -> {profile.model_dump()}") # Ye terminal mein poora data dikhayega
         
-        # Step 1: Brain se AI response lo
+        # Step 1: Brain call
         ai_response = await brain_agent.analyze_user_profile(
             name=profile.name, 
             skills=profile.skills, 
-            target_role=profile.target_role
+            target_role=profile.role 
         )
+        
+        # Step 2: Database call (Yahan error ho sakta hai)
+        await db_agent.save_analysis(profile.model_dump(), ai_response)
+        
+        return {"status": "Success", "analysis": ai_response}
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc()) # Ye terminal mein batayega ki error kaunsi line par hai
+        raise HTTPException(status_code=500, detail=str(e))
+        
+        # ... baaki code
         
         # Step 2: Database mein save karo
         await db_agent.save_analysis(profile.model_dump(), ai_response)

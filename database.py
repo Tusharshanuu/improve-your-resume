@@ -16,7 +16,13 @@ class CareerDatabase:
         except Exception as e:
             print(f"[Fatal Error] Database initialize nahi ho paya: {e}")
 
-    async def save_analysis(self, user_data: dict, ai_analysis: dict):
+    # async def save_analysis(self, user_data: dict, ai_analysis: dict):
+     # database.py mein save_analysis function ke andar
+    async def save_analysis(self, user_data: dict, analysis: dict):
+    # Agar tum user_data se role nikal rahe ho, toh check karo key kya hai
+        role = user_data.get("role") or user_data.get("target_role") # Dono check kar lo safety ke liye
+    
+    # Baaki saving logic...
         # Check karo ki collection bani hai ya nahi
         if not hasattr(self, 'collection'):
             print("[Error] Database connection missing. Save cancel.")
