@@ -6,7 +6,8 @@ import json
 st.set_page_config(page_title="Career Architect AI", page_icon="🚀", layout="wide")
 
 # Backend URL (FastAPI ka address)
-BACKEND_URL = "http://127.0.0.1:8000"
+# BACKEND_URL = "http://127.0.0.1:8000"
+BACKEND_URL = "https://improve-your-resume.onrender.com"
 
 st.title("🚀 Career Architect AI")
 st.markdown("### Apna sateek career roadmap taiyar karein")
