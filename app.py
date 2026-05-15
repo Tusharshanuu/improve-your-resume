@@ -10,11 +10,11 @@ st.set_page_config(page_title="Career Architect AI", page_icon="🚀", layout="w
 BACKEND_URL = "https://improve-your-resume.onrender.com"
 
 st.title("🚀 Career Architect AI")
-st.markdown("### Apna sateek career roadmap taiyar karein")
+st.markdown("### Build your professional career roadmap")
 
 # --- SIDEBAR: User Input ---
 st.sidebar.header("User Profile")
-name = st.sidebar.text_input("Apna Naam", placeholder="e.g. Tushar")
+name = st.sidebar.text_input("Full Name", placeholder="Enter Your Name")
 target_role = st.sidebar.text_input("Target Role", placeholder="e.g. AI Engineer")
 exp_level = st.sidebar.selectbox("Experience Level", ["Beginner", "Intermediate", "Pro"])
 
@@ -24,7 +24,7 @@ skills_raw = st.sidebar.text_area("Skills (Comma separated)", placeholder="Pytho
 # --- MAIN SECTION ---
 if st.sidebar.button("Generate My Roadmap"):
     if not name or not skills_raw:
-        st.error("Bhai, naam aur skills toh daal do!")
+        st.error("Please Enter Your Name and Skills")
     else:
         # Skills ko list mein badlo
         skills_list = [s.strip() for s in skills_raw.split(",")]
@@ -37,7 +37,7 @@ if st.sidebar.button("Generate My Roadmap"):
             "target_role": target_role if target_role else "AI Engineer"
         }
 
-        with st.spinner("Bhai, AI dimaag laga raha hai... thoda sabar rakho!"):
+        with st.spinner("Please Wait you Roadmap is Generating"):
             try:
                 # 1. FastAPI Backend ko call karo
                 response = requests.post(f"{BACKEND_URL}/analyze-skills", json=payload)
@@ -52,13 +52,13 @@ if st.sidebar.button("Generate My Roadmap"):
                         else:
                             analysis = ai_raw
                     except Exception as parse_error:
-                        st.error("AI ka format thoda ajeeb hai, parse nahi ho pa raha.")
+                        st.error(" Sorry! Format is wrong")
                         st.write("Raw Data:", ai_raw)
                         analysis = {}
 
                     # 2. UI Par Display Karo
                     if analysis:
-                        st.success(f"Mubarak ho {name}! Tera Roadmap niche taiyar hai.")
+                        st.success(f"Congratulations {name}! Your Roadmap is ready in below")
 
                         # --- Section 1: Skill Gaps ---
                         st.subheader("🎯 Skill Gaps")
@@ -68,7 +68,7 @@ if st.sidebar.button("Generate My Roadmap"):
                             for i, gap in enumerate(gaps):
                                 cols[i].error(f"**{gap}**")
                         else:
-                            st.write("Bhai, koi gap nahi mila! Tum toh pro ho.")
+                            st.write("You are Pro No difference in your skill")
 
                         st.divider()
 
@@ -80,7 +80,7 @@ if st.sidebar.button("Generate My Roadmap"):
                                 with st.expander(f"Week {i+1} Plan", expanded=True):
                                     st.markdown(step)
                         else:
-                            st.warning("Roadmap generate nahi ho paya. Prompt check karein.")
+                            st.warning("Roadmap is not generating. Please check your Prompt.")
 
                         st.divider()
 
